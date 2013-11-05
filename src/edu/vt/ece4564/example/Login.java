@@ -1,7 +1,5 @@
 package edu.vt.ece4564.example;
 
-//This is a test comment for committing purposes
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

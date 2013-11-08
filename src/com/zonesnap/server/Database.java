@@ -1,4 +1,4 @@
-package edu.vt.ece4564.example;
+package com.zonesnap.server;
 
 import java.sql.Blob;
 import java.sql.DriverManager;
@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class Database {
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			connection = DriverManager
-					.getConnection("jdbc:mysql://localhost/assignment_1?"
+					.getConnection("jdbc:mysql://localhost/zonesnap?"
 							+ "user=grcosp&password=CheeseBurger2900?");
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -81,22 +82,24 @@ public class Database {
 		}
 	}
 
-	boolean RegisterUser(String name, String email, String instrument,
-			String password) {
-		// Check if email already exist in database
-		if (GetUsernames().contains(email)) {
-			return false;
-		}
+	boolean RegisterUser(String username) {
+//		// Check if email already exist in database
+//		if (GetUsernames().contains(email)) {
+//			return false;
+//		}
 
 		// Insert user into database
 		try {
-			String query = "INSERT INTO `accounts` (`name`,`username`,`instrument`,`password`) VALUES (?,?,?,?)";
+			String query = "INSERT INTO `users` (`username`,`last_login`) VALUES (?,?)";
 			java.sql.PreparedStatement prepared = connection
 					.prepareStatement(query);
-			prepared.setString(1, name);
-			prepared.setString(2, email);
-			prepared.setString(3, instrument);
-			prepared.setString(4, password);
+			prepared.setString(1, username);
+			
+			// Set the current date
+			java.util.Date today=new java.util.Date();
+			Timestamp currentTimestamp=new Timestamp(today.getTime());
+			prepared.setTimestamp(2, currentTimestamp);
+			
 			prepared.execute(); // Insert
 
 		} catch (SQLException e) {
@@ -208,36 +211,31 @@ public class Database {
 
 	// Retrieve the user's profile data in JSON format
 	@SuppressWarnings("unchecked")
-	String RetrieveUserProfile(String email) {
+	String RetrieveUserProfile(String username) {
 		// Variables that we will retreiving
-		String name = null, instrument = null;
-		String latitude = null, longitude = null;
+		int total_likes, zones_crossed;
 		JSONObject json = new JSONObject();
 		
 		// Query the database
 		try {
-			Statement statement = connection.createStatement();
-
 			// Query and execute
-			String query = "SELECT  `name`,`instrument`,`latitude_last`,`longitude_last` FROM  `accounts` WHERE `username` = '"
-					+ email + "'";
-			ResultSet rs = statement.executeQuery(query);
+			String query = "SELECT  `total_likes`,`zones_crossed` FROM  `accounts` WHERE `username` = ?";
+			PreparedStatement prepared = connection.prepareStatement(query);
+			prepared.setString(0, username);
+			
+			ResultSet rs = prepared.executeQuery();
 
 			// If user exists
 			if (rs.next()) {
-				name = rs.getString("name");
-				instrument = rs.getString("instrument");
-				longitude = String.valueOf(rs.getDouble("longitude_last"));
-				latitude = String.valueOf(rs.getDouble("latitude_last"));
+				total_likes = rs.getInt("total_likes");
+				zones_crossed = rs.getInt("zones_crossed");
 			} else {
 				return null;
 			}
 
 			// Create the JSON object that we will return
-			json.put("name", name);
-			json.put("instrument", instrument);
-			json.put("latitude", latitude);
-			json.put("longitude", longitude);
+			json.put("total_likes", total_likes);
+			json.put("zones_crossed", zones_crossed);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

@@ -1,4 +1,4 @@
-package edu.vt.ece4564.example;
+package com.zonesnap.server;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -12,7 +12,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 public class MainServlet extends HttpServlet {
 	public static void main(String[] args) throws Exception {
 		// Using PORT 8888
-		Server server = new Server(8888);
+		Server server = new Server(8080);
 
 		// Set up server
 		WebAppContext context = new WebAppContext();
@@ -30,3 +30,4 @@ public class MainServlet extends HttpServlet {
 		resp.getWriter().write("Jam with me Server! See API for usage");
 	}
 }
+   

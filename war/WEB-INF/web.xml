@@ -9,7 +9,7 @@ javaee/web-app_3_0.xsd"
 
 	<servlet>
 		<servlet-name>UploadPic</servlet-name>
-		<servlet-class>edu.vt.ece4564.example.PictureUpload</servlet-class>
+		<servlet-class>com.zonesnap.server.PictureUpload</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
@@ -19,7 +19,7 @@ javaee/web-app_3_0.xsd"
 
 	<servlet>
 		<servlet-name>UploadSound</servlet-name>
-		<servlet-class>edu.vt.ece4564.example.SoundUpload</servlet-class>
+		<servlet-class>com.zonesnap.server.SoundUpload</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
@@ -29,7 +29,7 @@ javaee/web-app_3_0.xsd"
 	
 	<servlet>
 		<servlet-name>Login</servlet-name>
-		<servlet-class>edu.vt.ece4564.example.Login</servlet-class>
+		<servlet-class>com.zonesnap.server.Login</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
@@ -39,7 +39,7 @@ javaee/web-app_3_0.xsd"
 
 	<servlet>
 		<servlet-name>ProfileData</servlet-name>
-		<servlet-class>edu.vt.ece4564.example.ProfileData</servlet-class>
+		<servlet-class>com.zonesnap.server.ProfileData</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
@@ -49,7 +49,7 @@ javaee/web-app_3_0.xsd"
 	
 	<servlet>
 		<servlet-name>Register</servlet-name>
-		<servlet-class>edu.vt.ece4564.example.Register</servlet-class>
+		<servlet-class>com.zonesnap.server.Register</servlet-class>
 	</servlet>
 
 	<servlet-mapping>

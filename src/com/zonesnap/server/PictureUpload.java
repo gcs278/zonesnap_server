@@ -1,4 +1,4 @@
-package edu.vt.ece4564.example;
+package com.zonesnap.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;

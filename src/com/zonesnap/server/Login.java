@@ -1,4 +1,4 @@
-package edu.vt.ece4564.example;
+package com.zonesnap.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,7 +34,8 @@ public class Login extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		resp.setContentType("text/plain");
-		resp.getWriter().println("Jam with me login servlet");
+		Database database = new Database();
+		database.RegisterUser("Test");
 	}
 
 	@Override
@@ -56,7 +57,7 @@ public class Login extends HttpServlet {
 			latitude = (double) o.get("latitude");
 			longitude = (double) o.get("longitude");
 			password = (String) o.get("password");
-			System.out.println("Email:"+email);
+			System.out.println("Email:" + email);
 			// Connect to database, and check creds. of user
 			Database database = new Database();
 			String response = database.LoginUser(email, password, latitude,

@@ -15,21 +15,28 @@ public class PictureUpload extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		Database database = new Database();
-
+		int photoID = 0;
+		
 		// Get email and check
-		String email = req.getParameter("email");
-		if (email == null) {
+		try {
+			photoID = Integer.parseInt(req.getParameter("photoID"));
+		} catch(NumberFormatException e) {
 			resp.getWriter().println("Error: Incorrect usage");
 			return;
-		} else if (!database.GetUsernames().contains(email)) {
-			resp.getWriter().println("Error: Invalid username");
-			return;
 		}
-		System.out.println(email);
+		if (photoID == -1) {
+			resp.getWriter().println("Error: Incorrect usage");
+			return;
+		} 
+//		else if (!database.GetUsernames().contains(photoID)) {
+//			resp.getWriter().println("Error: Invalid username");
+//			return;
+//		}
+		System.out.println(photoID);
 		String imageBase64 = null;
 		try {
 			// Retrieve the picture and convert to base64
-			imageBase64 = new String(database.RetrievePicture(email),
+			imageBase64 = new String(database.RetrievePicture(photoID),
 					"UTF8");
 		} catch (RuntimeException e) {
 			resp.getWriter().println(e.getMessage());
@@ -49,8 +56,11 @@ public class PictureUpload extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		// Get email & check
-		String email = req.getParameter("email");
-		if (email == null) {
+		String username = req.getParameter("username");
+		float latitude = Float.parseFloat(req.getParameter("lat"));
+		float longitude = Float.parseFloat(req.getParameter("long"));
+		
+		if (username == null || latitude == 0.0f || longitude == 0.0f) {
 			resp.getWriter().println("Error: Incorrect usage");
 			return;
 		}
@@ -64,7 +74,7 @@ public class PictureUpload extends HttpServlet {
 
 		// Upload the image to the database
 		Database database = new Database();
-		if (database.UploadPicture(imageBytes, email))
+		if (database.UploadPicture(imageBytes, username, latitude, longitude))
 			resp.getWriter().println("OK");
 		else
 			resp.getWriter().println("FAIL");

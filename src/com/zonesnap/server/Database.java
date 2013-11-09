@@ -1,5 +1,6 @@
 package com.zonesnap.server;
 
+import java.math.RoundingMode;
 import java.sql.Blob;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,8 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.Spring;
 
 import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONObject;
@@ -83,10 +87,10 @@ public class Database {
 	}
 
 	boolean RegisterUser(String username) {
-//		// Check if email already exist in database
-//		if (GetUsernames().contains(email)) {
-//			return false;
-//		}
+		// // Check if email already exist in database
+		// if (GetUsernames().contains(email)) {
+		// return false;
+		// }
 
 		// Insert user into database
 		try {
@@ -94,12 +98,12 @@ public class Database {
 			java.sql.PreparedStatement prepared = connection
 					.prepareStatement(query);
 			prepared.setString(1, username);
-			
+
 			// Set the current date
-			java.util.Date today=new java.util.Date();
-			Timestamp currentTimestamp=new Timestamp(today.getTime());
+			java.util.Date today = new java.util.Date();
+			Timestamp currentTimestamp = new Timestamp(today.getTime());
 			prepared.setTimestamp(2, currentTimestamp);
-			
+
 			prepared.execute(); // Insert
 
 		} catch (SQLException e) {
@@ -110,14 +114,17 @@ public class Database {
 	}
 
 	// Upload a picture for the corresponding user
-	boolean UploadPicture(byte[] image, String email) {
-		// Check if the username exists
-		if (!GetUsernames().contains(email)) {
-			return false;
+	boolean UploadPicture(byte[] image, String username, double latitude,
+			double longitude) {
+		
+		int zoneID = LocateZone(latitude, longitude);
+		if (zoneID == -1) {
+			CreateZone(latitude, longitude);
 		}
+		
 		try {
-			String query = "UPDATE `accounts` SET `picture`= ? WHERE `username` = '"
-					+ email + "'";
+			String query = "UPDATE `pictures` SET `picture`= ? WHERE `username` = '"
+					+ username + "'";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			// Insert image bytes into query
 			prepared.setBytes(1, image);
@@ -131,27 +138,84 @@ public class Database {
 		return true;
 	}
 
-	byte[] RetrievePicture(String email) {
+	// Trys to find the zone that the picture was taken in
+	int LocateZone(double latitude, double longitude) {
+		int zoneID = -1;
+		try {
+			// Query for seeing if longitude and latitude are betwen the ranges
+			String query = "SELECT  * FROM  `zones` WHERE ? BETWEEN `longitude_end` and `longitude_start` and ? BETWEEN `latitude_start` and `latitude_end`";
+			PreparedStatement prepared = connection.prepareStatement(query);
+			prepared.setDouble(1, longitude);
+			prepared.setDouble(2, latitude);
+			// Execute
+			ResultSet rs = prepared.executeQuery();
+
+			// Check if we have a result
+			if (rs.next())
+				zoneID = rs.getInt("idzones");
+			else
+				return zoneID;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+		return zoneID;
+	}
+	
+	// If zone doesn't exist, create a new zone
+	void CreateZone(double latitude, double longitude) {
+		// Drop precision on latitude and long
+		DecimalFormat df = new DecimalFormat("#.###");
+		df.setRoundingMode(RoundingMode.DOWN);
+		
+		// Lower range
+		double latitude_low = Double.parseDouble(df.format(latitude));
+		double longitude_low = Double.parseDouble(df.format(longitude));
+		
+		// Upper range
+		double latitude_high = latitude_low + 0.001;
+		double longitude_high = longitude_low - 0.001;
+
+		
+		try {
+			String query = "INSERT INTO `zones` (`latitude_start`,`latitude_end`,`longitude_start`,`longitude_end`) VALUES (?,?,?,?)";
+			java.sql.PreparedStatement prepared = connection
+					.prepareStatement(query);
+			prepared.setDouble(1, latitude_low);
+			prepared.setDouble(2, latitude_high);
+			prepared.setDouble(3, longitude_low);
+			prepared.setDouble(4, longitude_high);
+
+			prepared.execute(); // Insert
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+	}
+
+	byte[] RetrievePicture(int photoID) {
 		byte[] imageBytes = null;
 
 		try {
 			// Build query to get picture for current user
-			String query = "SELECT  `picture` FROM  `accounts` WHERE `username` = ?";
+			String query = "SELECT  `picture_blob` FROM  `pictures` WHERE `idpictures` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
-			prepared.setString(1, email);
+			prepared.setInt(1, photoID);
 			// Execute
 			ResultSet rs = prepared.executeQuery();
 
 			Blob ImageBlob = null;
 			// Check if we have a result
 			if (rs.next())
-				ImageBlob = rs.getBlob("picture"); // Getting binary data
+				ImageBlob = rs.getBlob("picture_blob"); // Getting binary data
 			else
 				return null;
-			
+
 			if (ImageBlob == null)
 				throw new RuntimeException("No picture available");
-			
+
 			// Converting blob to byte array
 			imageBytes = ImageBlob.getBytes(1, (int) ImageBlob.length());
 
@@ -215,14 +279,14 @@ public class Database {
 		// Variables that we will retreiving
 		int total_likes, zones_crossed;
 		JSONObject json = new JSONObject();
-		
+
 		// Query the database
 		try {
 			// Query and execute
 			String query = "SELECT  `total_likes`,`zones_crossed` FROM  `accounts` WHERE `username` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			prepared.setString(0, username);
-			
+
 			ResultSet rs = prepared.executeQuery();
 
 			// If user exists
@@ -236,11 +300,79 @@ public class Database {
 			// Create the JSON object that we will return
 			json.put("total_likes", total_likes);
 			json.put("zones_crossed", zones_crossed);
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("Query Failed: " + e.getMessage());
 		}
 		return json.toJSONString();
+	}
+
+	// Plus +1 to the photo and add photo to user's favorites
+	boolean LikePicture(String username, int photoID) {
+
+		// Give the photo +1 likes
+		try {
+			String query = "UPDATE `pictures` SET `likes`= likes+1 WHERE `idpictures` = ?";
+			java.sql.PreparedStatement prepared = connection
+					.prepareStatement(query);
+			prepared.setInt(1, photoID);
+			prepared.execute();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+			return false;
+		}
+
+		// Add photo to User's likes
+		try {
+			int userId = GetUserID(username);
+
+			String query = "INSERT INTO `user_favorites` (`picture_id`,`users_id`,`date`) VALUES (?,?,?)";
+			java.sql.PreparedStatement prepared = connection
+					.prepareStatement(query);
+			prepared.setInt(1, photoID);
+			prepared.setInt(2, userId);
+
+			// Set the current date
+			java.util.Date today = new java.util.Date();
+			Timestamp currentTimestamp = new Timestamp(today.getTime());
+			prepared.setTimestamp(3, currentTimestamp);
+
+			prepared.execute();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+			return false;
+		}
+
+		return true;
+	}
+
+	// Gets the user's ID from username string
+	private int GetUserID(String username) {
+		int userID = -1;
+		try {
+			String idQuery = "SELECT  `id` FROM  `users` WHERE `username` = ?";
+			java.sql.PreparedStatement preparedId = connection
+					.prepareStatement(idQuery);
+			preparedId.setString(1, username);
+			ResultSet rs = preparedId.executeQuery();
+
+			// Check if we have a result
+			if (rs.next())
+				userID = rs.getInt("id"); // Getting ID
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+			return -1;
+		}
+		return userID;
 	}
 }

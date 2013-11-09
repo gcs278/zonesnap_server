@@ -35,7 +35,10 @@ public class Login extends HttpServlet {
 			throws IOException {
 		resp.setContentType("text/plain");
 		Database database = new Database();
-		database.RegisterUser("Test");
+
+		 System.out.println(database.LocateZone(37.227759, -80.422449));
+		 // database.CreateZone(37.227759, -80.422449);
+		// database.RegisterUser("Test");
 	}
 
 	@Override

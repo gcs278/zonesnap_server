@@ -116,14 +116,14 @@ public class Database {
 	// Upload a picture for the corresponding user
 	boolean UploadPicture(byte[] image, String username, double latitude,
 			double longitude) {
-		
+
 		int zoneID = LocateZone(latitude, longitude);
 		if (zoneID == -1) {
 			CreateZone(latitude, longitude);
 		}
-		
+
 		try {
-			String query = "UPDATE `pictures` SET `picture`= ? WHERE `username` = '"
+			String query = "UPDATE `pictures` SET `picture_blob`= ? WHERE `username` = '"
 					+ username + "'";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			// Insert image bytes into query
@@ -162,22 +162,21 @@ public class Database {
 		}
 		return zoneID;
 	}
-	
+
 	// If zone doesn't exist, create a new zone
 	void CreateZone(double latitude, double longitude) {
 		// Drop precision on latitude and long
 		DecimalFormat df = new DecimalFormat("#.###");
 		df.setRoundingMode(RoundingMode.DOWN);
-		
+
 		// Lower range
 		double latitude_low = Double.parseDouble(df.format(latitude));
 		double longitude_low = Double.parseDouble(df.format(longitude));
-		
+
 		// Upper range
 		double latitude_high = latitude_low + 0.001;
 		double longitude_high = longitude_low - 0.001;
 
-		
 		try {
 			String query = "INSERT INTO `zones` (`latitude_start`,`latitude_end`,`longitude_start`,`longitude_end`) VALUES (?,?,?,?)";
 			java.sql.PreparedStatement prepared = connection
@@ -374,5 +373,42 @@ public class Database {
 			return -1;
 		}
 		return userID;
+	}
+
+	// Get the list of usernames
+	List<Integer> GetPhotoIDs(double latitude, double longitude, String order) {
+		List<Integer> photoIDs = new ArrayList<Integer>();
+		// Locate Zone
+		int zoneID = LocateZone(latitude, longitude);
+		
+		// If no zone, no pictures
+		if (zoneID == -1) {
+			return photoIDs; // 
+		}
+		
+		try {
+			String query= "SELECT  `idpictures` FROM  `pictures` WHERE `zones_id` = ? ";
+			if (order.equalsIgnoreCase(new String("likes"))) {
+				query += "ORDER BY `likes` DESC";
+			} else {
+				query += "ORDER BY `date` DESC";
+			}
+			
+			PreparedStatement statement = connection.prepareStatement(query);
+			statement.setInt(1, zoneID);
+
+			ResultSet rs = statement.executeQuery();
+
+			// Get usernames
+			while (rs.next()) 
+				photoIDs.add(rs.getInt("idpictures"));
+			
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+		return photoIDs;
 	}
 }

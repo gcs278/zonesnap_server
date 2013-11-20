@@ -114,7 +114,7 @@ public class Database {
 	}
 
 	// Upload a picture for the corresponding user
-	boolean UploadPicture(byte[] image, String username, double latitude,
+	boolean UploadPicture(byte[] image, String title, int userID, double latitude,
 			double longitude) {
 
 		int zoneID = LocateZone(latitude, longitude);
@@ -123,11 +123,15 @@ public class Database {
 		}
 
 		try {
-			String query = "UPDATE `pictures` SET `picture_blob`= ? WHERE `username` = '"
-					+ username + "'";
+			String query = "INSERT INTO `pictures` (`users_id`,`title`,`picture_blob`,`latitude`,`longitude`,`likes`,`zones_id`) VALUES (?,?,?,?,?,0,?)";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			// Insert image bytes into query
-			prepared.setBytes(1, image);
+			prepared.setInt(1, userID);
+			prepared.setString(2, title);
+			prepared.setBytes(3, image);
+			prepared.setDouble(4, 80.38);
+			prepared.setDouble(5, -80.2098);
+			prepared.setInt(6, zoneID);
 			prepared.execute(); // Insert
 
 		} catch (SQLException e) {
@@ -199,9 +203,9 @@ public class Database {
 
 		try {
 			// Build query to get picture for current user
-			String query = "SELECT  `picture_blob` FROM  `pictures` WHERE `idpictures` = ?";
+			String query = "SELECT  `picture_blob` FROM  `pictures` ORDER BY `date` DESC";// WHERE `idpictures` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
-			prepared.setInt(1, photoID);
+			// prepared.setInt(1, photoID);
 			// Execute
 			ResultSet rs = prepared.executeQuery();
 

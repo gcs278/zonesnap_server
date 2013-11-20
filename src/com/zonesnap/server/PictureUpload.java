@@ -12,16 +12,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 // This servlet is for retrieving and uploading a picture to database
 public class PictureUpload extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private void PrintError(HttpServletResponse resp, String error) throws IOException {
+	private void PrintError(HttpServletResponse resp, String error)
+			throws IOException {
 		resp.getWriter().println("Error: Incorrect API usage");
 		resp.getWriter().println("Message: " + error);
 	}
-	
+
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -42,24 +45,26 @@ public class PictureUpload extends HttpServlet {
 			try {
 				order = req.getParameter("order");
 				if (order == null) {
-					PrintError(resp,"Order was not specified");
+					PrintError(resp, "Order was not specified");
 					return;
-				} else if (!order.equalsIgnoreCase(new String("date")) && !order.equalsIgnoreCase(new String("likes"))) {
-					PrintError(resp,"Order type is invalid");
+				} else if (!order.equalsIgnoreCase(new String("date"))
+						&& !order.equalsIgnoreCase(new String("likes"))) {
+					PrintError(resp, "Order type is invalid");
 					return;
 				}
 				latitude = Double.parseDouble(req.getParameter("lat"));
 				longitude = Double.parseDouble(req.getParameter("long"));
-			} catch(NumberFormatException e) {
-				PrintError(resp,e.getMessage());
+			} catch (NumberFormatException e) {
+				PrintError(resp, e.getMessage());
 				return;
-			} catch(NullPointerException e) {
-				PrintError(resp,"No value for lat or long");
+			} catch (NullPointerException e) {
+				PrintError(resp, "No value for lat or long");
 				return;
 			}
-			
+
 			// Return list of photoIDs
-			List<Integer> photoIDs = database.GetPhotoIDs(latitude,longitude,order);
+			List<Integer> photoIDs = database.GetPhotoIDs(latitude, longitude,
+					order);
 			JSONObject json = new JSONObject();
 			JSONArray jsonArray = new JSONArray();
 			for (Iterator<Integer> i = photoIDs.iterator(); i.hasNext();) {
@@ -85,8 +90,7 @@ public class PictureUpload extends HttpServlet {
 			String imageBase64 = null;
 			try {
 				// Retrieve the picture and convert to base64
-				sendData = new String(database.RetrievePicture(photoID),
-						"UTF8");
+				sendData = new String(database.RetrievePicture(photoID), "UTF8");
 			} catch (RuntimeException e) {
 				resp.getWriter().println(e.getMessage());
 				return;
@@ -114,29 +118,40 @@ public class PictureUpload extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		// Get email & check
-		String username = req.getParameter("username");
-		float latitude = Float.parseFloat(req.getParameter("lat"));
-		float longitude = Float.parseFloat(req.getParameter("long"));
-
-		if (username == null || latitude == 0.0f || longitude == 0.0f) {
-			resp.getWriter().println("Error: Incorrect usage");
-			return;
-		}
+		// String username = req.getParameter("username");
+		// float latitude = Float.parseFloat(req.getParameter("lat"));
+		// float longitude = Float.parseFloat(req.getParameter("long"));
+		//
+		// if (username == null || latitude == 0.0f || longitude == 0.0f) {
+		// resp.getWriter().println("Error: Incorrect usage");
+		// return;
+		// }
 
 		// Get the image string that has been sent
 		BufferedReader bin = new BufferedReader(req.getReader());
-		String imageBase64 = bin.readLine();
+		String json = bin.readLine();
+		String image = "";
+		String title = "";
+		try {
+			JSONParser j = new JSONParser();
+			JSONObject o;
 
-		System.out.println(imageBase64);
-		byte[] imageBytes = imageBase64.getBytes("UTF8");
+			o = (JSONObject) j.parse(json);
+			image = (String) o.get("image");
+			title = (String) o.get("title");
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		System.out.println(image);
+		byte[] imageBytes = image.getBytes("UTF8");
 
 		// Upload the image to the database
 		Database database = new Database();
-		if (database.UploadPicture(imageBytes, username, latitude, longitude))
+		if (database.UploadPicture(imageBytes, title, 1, 0, 0))
 			resp.getWriter().println("OK");
 		else
 			resp.getWriter().println("FAIL");
 
 	}
-
 }

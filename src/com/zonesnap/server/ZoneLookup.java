@@ -63,5 +63,6 @@ public class ZoneLookup extends HttpServlet {
 		json.put("zone", zone);
 
 		resp.getWriter().println(json.toJSONString());
+		database.Close();
 	}
 }

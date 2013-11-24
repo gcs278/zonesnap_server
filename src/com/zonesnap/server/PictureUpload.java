@@ -87,14 +87,15 @@ public class PictureUpload extends HttpServlet {
 				resp.getWriter().println("Error: Incorrect usage");
 				return;
 			}
-			String imageBase64 = null;
+
 			try {
 				// Retrieve the picture and convert to base64
-				sendData = new String(database.RetrievePicture(photoID), "UTF8");
+				sendData = database.RetrievePicture(photoID);
 			} catch (RuntimeException e) {
 				resp.getWriter().println(e.getMessage());
 				return;
 			}
+			
 		} else {
 			resp.getWriter().println("Unknown Request");
 			return;
@@ -112,6 +113,7 @@ public class PictureUpload extends HttpServlet {
 		// img += ImageDatabase + "\"/>";
 
 		resp.getWriter().println(sendData);
+		database.Close();
 	}
 
 	@Override
@@ -152,6 +154,6 @@ public class PictureUpload extends HttpServlet {
 			resp.getWriter().println("OK");
 		else
 			resp.getWriter().println("FAIL");
-
+		database.Close();
 	}
 }

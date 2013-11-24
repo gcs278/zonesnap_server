@@ -1,5 +1,6 @@
 package com.zonesnap.server;
 
+import java.io.UnsupportedEncodingException;
 import java.math.RoundingMode;
 import java.sql.Blob;
 import java.sql.DriverManager;
@@ -114,8 +115,8 @@ public class Database {
 	}
 
 	// Upload a picture for the corresponding user
-	boolean UploadPicture(byte[] image, String title, int userID, double latitude,
-			double longitude) {
+	boolean UploadPicture(byte[] image, String title, int userID,
+			double latitude, double longitude) {
 
 		int zoneID = LocateZone(latitude, longitude);
 		if (zoneID == -1) {
@@ -198,22 +199,24 @@ public class Database {
 		}
 	}
 
-	byte[] RetrievePicture(int photoID) {
+	String RetrievePicture(int photoID) {
 		byte[] imageBytes = null;
-
+		String title = null;
 		try {
 			// Build query to get picture for current user
-			String query = "SELECT  `picture_blob` FROM  `pictures` WHERE `idpictures` = ?";
+			String query = "SELECT  `picture_blob`,`title` FROM  `pictures` WHERE `idpictures` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			prepared.setInt(1, photoID);
 			// Execute
 			ResultSet rs = prepared.executeQuery();
 
 			Blob ImageBlob = null;
+
 			// Check if we have a result
-			if (rs.next())
+			if (rs.next()) {
 				ImageBlob = rs.getBlob("picture_blob"); // Getting binary data
-			else
+				title = rs.getString("title");
+			} else
 				return null;
 
 			if (ImageBlob == null)
@@ -226,8 +229,15 @@ public class Database {
 			e.printStackTrace();
 			System.out.println("Query Failed: " + e.getMessage());
 		}
+		JSONObject json = new JSONObject();
+		try {
+			json.put("image", new String(imageBytes, "UTF-8"));
+			json.put("title", title);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 
-		return imageBytes;
+		return json.toJSONString();
 	}
 
 	boolean UploadSound(byte[] sound, String email) {
@@ -333,7 +343,7 @@ public class Database {
 		try {
 			int userId = GetUserID(username);
 
-			String query = "INSERT INTO `user_favorites` (`picture_id`,`users_id`,`date`) VALUES (?,?,?)";
+			String query = "INSERT INTO `user_favorites` (`pictures_id`,`users_id`,`date`) VALUES (?,?,?)";
 			java.sql.PreparedStatement prepared = connection
 					.prepareStatement(query);
 			prepared.setInt(1, photoID);
@@ -384,29 +394,28 @@ public class Database {
 		List<Integer> photoIDs = new ArrayList<Integer>();
 		// Locate Zone
 		int zoneID = LocateZone(latitude, longitude);
-		
+
 		// If no zone, no pictures
 		if (zoneID == -1) {
-			return photoIDs; // 
+			return photoIDs; //
 		}
-		
+
 		try {
-			String query= "SELECT  `idpictures` FROM  `pictures` WHERE `zones_id` = ? ";
+			String query = "SELECT  `idpictures` FROM  `pictures` WHERE `zones_id` = ? ";
 			if (order.equalsIgnoreCase(new String("likes"))) {
 				query += "ORDER BY `likes` DESC";
 			} else {
 				query += "ORDER BY `date` DESC";
 			}
-			
+
 			PreparedStatement statement = connection.prepareStatement(query);
 			statement.setInt(1, zoneID);
 
 			ResultSet rs = statement.executeQuery();
 
 			// Get usernames
-			while (rs.next()) 
+			while (rs.next())
 				photoIDs.add(rs.getInt("idpictures"));
-			
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -414,5 +423,50 @@ public class Database {
 			System.out.println("Query Failed: " + e.getMessage());
 		}
 		return photoIDs;
+	}
+
+	// Get the list of usernames
+	List<Integer> GetLikedPhotos(String username, int photoID) {
+		List<Integer> photoIDs = new ArrayList<Integer>();
+		// Locate Zone
+		int zoneID = LocateZone(latitude, longitude);
+
+		// If no zone, no pictures
+		if (zoneID == -1) {
+			return photoIDs; //
+		}
+
+		try {
+			String query = "SELECT  `idpictures` FROM  `pictures` WHERE `zones_id` = ? ";
+			if (order.equalsIgnoreCase(new String("likes"))) {
+				query += "ORDER BY `likes` DESC";
+			} else {
+				query += "ORDER BY `date` DESC";
+			}
+
+			PreparedStatement statement = connection.prepareStatement(query);
+			statement.setInt(1, zoneID);
+
+			ResultSet rs = statement.executeQuery();
+
+			// Get usernames
+			while (rs.next())
+				photoIDs.add(rs.getInt("idpictures"));
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+		return photoIDs;
+	} 
+
+	// Close the database connection
+	void Close() {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

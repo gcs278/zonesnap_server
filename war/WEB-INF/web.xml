@@ -26,7 +26,7 @@ javaee/web-app_3_0.xsd"
 		<servlet-name>UploadSound</servlet-name>
 		<url-pattern>/uploadsound</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet>
 		<servlet-name>Login</servlet-name>
 		<servlet-class>com.zonesnap.server.Login</servlet-class>
@@ -46,7 +46,7 @@ javaee/web-app_3_0.xsd"
 		<servlet-name>ProfileData</servlet-name>
 		<url-pattern>/profile</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet>
 		<servlet-name>Register</servlet-name>
 		<servlet-class>com.zonesnap.server.Register</servlet-class>
@@ -57,4 +57,13 @@ javaee/web-app_3_0.xsd"
 		<url-pattern>/register</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>ZoneLookup</servlet-name>
+		<servlet-class>com.zonesnap.server.ZoneLookup</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ZoneLookup</servlet-name>
+		<url-pattern>/zonelookup</url-pattern>
+	</servlet-mapping>
 </web-app>

@@ -203,9 +203,9 @@ public class Database {
 
 		try {
 			// Build query to get picture for current user
-			String query = "SELECT  `picture_blob` FROM  `pictures` ORDER BY `date` DESC";// WHERE `idpictures` = ?";
+			String query = "SELECT  `picture_blob` FROM  `pictures` WHERE `idpictures` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
-			// prepared.setInt(1, photoID);
+			prepared.setInt(1, photoID);
 			// Execute
 			ResultSet rs = prepared.executeQuery();
 

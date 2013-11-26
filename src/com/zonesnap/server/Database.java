@@ -18,6 +18,8 @@ import javax.swing.Spring;
 import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONObject;
 
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+
 public class Database {
 	java.sql.Connection connection;
 
@@ -88,12 +90,7 @@ public class Database {
 	}
 
 	boolean RegisterUser(String username) {
-		// // Check if email already exist in database
-		// if (GetUsernames().contains(email)) {
-		// return false;
-		// }
-
-		// Insert user into database
+		// Attempt to insert into database
 		try {
 			String query = "INSERT INTO `users` (`username`,`last_login`) VALUES (?,?)";
 			java.sql.PreparedStatement prepared = connection
@@ -106,6 +103,19 @@ public class Database {
 			prepared.setTimestamp(2, currentTimestamp);
 
 			prepared.execute(); // Insert
+
+		} catch (MySQLIntegrityConstraintViolationException e) {
+			// Means that user is registered
+			// Update his last login
+			String query = "UPDATE `users` SET `last_login` = CURRENT_TIMESTAMP WHERE `username` = ?";
+			java.sql.PreparedStatement prepared;
+			try {
+				prepared = connection.prepareStatement(query);
+				prepared.setString(1, username);
+				prepared.execute();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -426,32 +436,24 @@ public class Database {
 	}
 
 	// Get the list of usernames
-	List<Integer> GetLikedPhotos(String username, int photoID) {
+	List<Integer> GetLikedPhotos(String username) {
 		List<Integer> photoIDs = new ArrayList<Integer>();
-		// Locate Zone
-		int zoneID = LocateZone(latitude, longitude);
-
-		// If no zone, no pictures
-		if (zoneID == -1) {
-			return photoIDs; //
-		}
 
 		try {
-			String query = "SELECT  `idpictures` FROM  `pictures` WHERE `zones_id` = ? ";
-			if (order.equalsIgnoreCase(new String("likes"))) {
-				query += "ORDER BY `likes` DESC";
-			} else {
-				query += "ORDER BY `date` DESC";
-			}
+			String query = "SELECT  `pictures_id` FROM  `user_favorites` LEFT JOIN `users` ON user_favorites.users_id = users.id WHERE `username` = ? ORDER BY `date` DESC";
 
 			PreparedStatement statement = connection.prepareStatement(query);
-			statement.setInt(1, zoneID);
+			statement.setString(1, username);
 
 			ResultSet rs = statement.executeQuery();
 
 			// Get usernames
-			while (rs.next())
-				photoIDs.add(rs.getInt("idpictures"));
+			while (rs.next()) {
+				int photo = rs.getInt("pictures_id");
+				if (!photoIDs.contains(photo)) {
+					photoIDs.add(photo);
+				}
+			}
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -459,7 +461,93 @@ public class Database {
 			System.out.println("Query Failed: " + e.getMessage());
 		}
 		return photoIDs;
-	} 
+	}
+	
+	private int getUserId(String username) {
+		int userId = 0;
+		try {
+			String query = "SELECT  `id` FROM  `users` WHERE `username` = ?";
+
+			PreparedStatement statement = connection.prepareStatement(query);
+			statement.setString(1, username);
+
+			ResultSet rs = statement.executeQuery();
+
+			// Get usernames
+			while (rs.next()) {
+				userId = rs.getInt("id");
+			}
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+		return userId;
+	}
+
+	boolean UpdateZonesCrossed(String username, double latitude, double longitude) {
+		int zoneID = LocateZone(latitude, longitude);
+		if (zoneID == -1) {
+			CreateZone(latitude, longitude);
+		}
+		int userID = getUserId(username);
+		if (userID == 0) {
+			return false;
+		}
+		// Add photo to User's likes
+		try {
+
+			String query = "INSERT INTO `zones_crossed` (`users_id`,`zones_id`) VALUES (?,?)";
+			java.sql.PreparedStatement prepared = connection
+					.prepareStatement(query);
+			prepared.setInt(1, userID);
+			prepared.setInt(2, zoneID);
+
+			prepared.execute();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+			return false;
+		}
+
+		return true;
+
+	}
+
+	// Get the list of usernames
+	List<Integer> GetPastPhotos(String username) {
+		List<Integer> photoIDs = new ArrayList<Integer>();
+
+		try {
+			String query = "SELECT pictures.idpictures FROM `zones_crossed` "
+					+ "LEFT JOIN `users` ON users.id = zones_crossed.users_id "
+					+ "LEFT JOIN `pictures` ON pictures.zones_id = zones_crossed.zones_id "
+					+ "WHERE zones_crossed.date >= now() - INTERVAL 1 DAY "
+					+ "AND users.username = ?";
+
+			PreparedStatement statement = connection.prepareStatement(query);
+			statement.setString(1, username);
+
+			ResultSet rs = statement.executeQuery();
+
+			// Get usernames
+			while (rs.next()) {
+				int photo = rs.getInt("idpictures");
+				if (!photoIDs.contains(photo)) {
+					photoIDs.add(photo);
+				}
+			}
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+		return photoIDs;
+	}
 
 	// Close the database connection
 	void Close() {

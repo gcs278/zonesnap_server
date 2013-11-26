@@ -76,4 +76,14 @@ javaee/web-app_3_0.xsd"
 		<servlet-name>Like</servlet-name>
 		<url-pattern>/like</url-pattern>
 	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>Tracking</servlet-name>
+		<servlet-class>com.zonesnap.server.ZoneTracking</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>Tracking</servlet-name>
+		<url-pattern>/tracking</url-pattern>
+	</servlet-mapping>
 </web-app>

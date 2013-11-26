@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.tools.JavaFileManager.Location;
+import javax.xml.crypto.Data;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -28,7 +29,7 @@ import org.json.simple.parser.ParseException;
 import com.mysql.jdbc.Connection;
 
 // This servlet is for authenticating a user
-public class Like extends HttpServlet {
+public class ZoneTracking extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	@Override
@@ -44,7 +45,7 @@ public class Like extends HttpServlet {
 		}
 		
 		// Return list of photoIDs
-		List<Integer> photoIDs = database.GetLikedPhotos(username);
+		List<Integer> photoIDs = database.GetPastPhotos(username);
 		JSONObject json = new JSONObject();
 		JSONArray jsonArray = new JSONArray();
 		for (Iterator<Integer> i = photoIDs.iterator(); i.hasNext();) {
@@ -64,7 +65,7 @@ public class Like extends HttpServlet {
 		// Post Variables for login
 		String username;
 		int photoID;
-
+		double latitude, longitude;
 		// Read the JSON data from POST
 		BufferedReader bin = new BufferedReader(req.getReader());
 		String json = bin.readLine();
@@ -75,16 +76,16 @@ public class Like extends HttpServlet {
 			JSONObject o = (JSONObject) j.parse(json);
 			username = (String) o.get("username");
 			photoID = Integer.parseInt(o.get("photoID").toString());
-
-			// Connect to database, and check creds. of user
-			Database database = new Database();
-			database.LikePicture(username, photoID);
-
-			// Send response to app
-			// resp.getWriter().println(response);
-
+			latitude = Double.parseDouble(o.get("lat").toString());
+			longitude = Double.parseDouble(o.get("long").toString());
+			Database database = new Database(); 
+			database.UpdateZonesCrossed(username, latitude, longitude);
+			
 		} catch (ParseException e) {
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			resp.getWriter().println("FAIL");
+			return;
 		}
 
 	}

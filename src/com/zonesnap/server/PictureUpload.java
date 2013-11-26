@@ -120,20 +120,13 @@ public class PictureUpload extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		// Get email & check
-		// String username = req.getParameter("username");
-		// float latitude = Float.parseFloat(req.getParameter("lat"));
-		// float longitude = Float.parseFloat(req.getParameter("long"));
-		//
-		// if (username == null || latitude == 0.0f || longitude == 0.0f) {
-		// resp.getWriter().println("Error: Incorrect usage");
-		// return;
-		// }
 
 		// Get the image string that has been sent
 		BufferedReader bin = new BufferedReader(req.getReader());
 		String json = bin.readLine();
 		String image = "";
 		String title = "";
+		double latitude = 0, longitude = 0;
 		try {
 			JSONParser j = new JSONParser();
 			JSONObject o;
@@ -141,16 +134,21 @@ public class PictureUpload extends HttpServlet {
 			o = (JSONObject) j.parse(json);
 			image = (String) o.get("image");
 			title = (String) o.get("title");
-
+			latitude = Double.parseDouble(o.get("lat").toString());
+			longitude = Double.parseDouble(o.get("long").toString());
+			
 		} catch (ParseException e) {
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			resp.getWriter().println("FAIL");
+			return;
 		}
-		System.out.println(image);
+		
 		byte[] imageBytes = image.getBytes("UTF8");
 
 		// Upload the image to the database
 		Database database = new Database();
-		if (database.UploadPicture(imageBytes, title, 1, 0, 0))
+		if (database.UploadPicture(imageBytes, title, 1, latitude, longitude))
 			resp.getWriter().println("OK");
 		else
 			resp.getWriter().println("FAIL");

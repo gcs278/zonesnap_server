@@ -378,7 +378,33 @@ public class Database {
 		}
 		return userID;
 	}
+	List<Coordinates> GetPhotoLocations() {
+		List<Coordinates> coorList = new ArrayList<Coordinates>();
+		try {
+			String query= "SELECT  `latitude`,`longitude` FROM  `pictures`";
 
+			PreparedStatement statement = connection.prepareStatement(query);
+
+			ResultSet rs = statement.executeQuery();
+
+			// Get usernames
+			while (rs.next()) {
+				double latitude =rs.getDouble("latitude");
+				double longitude = rs.getDouble("longitude");
+				Coordinates coor = new Coordinates();
+				coor.latitude = latitude;
+				coor.longitude = longitude;
+				coorList.add(coor);
+			}
+			
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+		}
+		return coorList;
+	}
 	// Get the list of usernames
 	List<Integer> GetPhotoIDs(double latitude, double longitude, String order) {
 		List<Integer> photoIDs = new ArrayList<Integer>();

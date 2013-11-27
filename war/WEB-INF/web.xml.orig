@@ -66,6 +66,8 @@ javaee/web-app_3_0.xsd"
 		<servlet-name>ZoneLookup</servlet-name>
 		<url-pattern>/zonelookup</url-pattern>
 	</servlet-mapping>
+<<<<<<< HEAD
+
 	<servlet>
 		<servlet-name>Like</servlet-name>
 		<servlet-class>com.zonesnap.server.Like</servlet-class>
@@ -84,6 +86,8 @@ javaee/web-app_3_0.xsd"
 	<servlet-mapping>
 		<servlet-name>Tracking</servlet-name>
 		<url-pattern>/tracking</url-pattern>
+=======
+	
 	<servlet>
 		<servlet-name>MapData</servlet-name>
 		<servlet-class>com.zonesnap.server.MapData</servlet-class>
@@ -92,5 +96,6 @@ javaee/web-app_3_0.xsd"
 	<servlet-mapping>
 		<servlet-name>MapData</servlet-name>
 		<url-pattern>/mapdata</url-pattern>
+>>>>>>> 10c5e3c9d4cd8278f1385e3c20a82f9d98b44245
 	</servlet-mapping>
 </web-app>

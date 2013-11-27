@@ -66,4 +66,14 @@ javaee/web-app_3_0.xsd"
 		<servlet-name>ZoneLookup</servlet-name>
 		<url-pattern>/zonelookup</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>MapData</servlet-name>
+		<servlet-class>com.zonesnap.server.MapData</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MapData</servlet-name>
+		<url-pattern>/mapdata</url-pattern>
+	</servlet-mapping>
 </web-app>

@@ -140,8 +140,8 @@ public class Database {
 			prepared.setInt(1, userID);
 			prepared.setString(2, title);
 			prepared.setBytes(3, image);
-			prepared.setDouble(4, 80.38);
-			prepared.setDouble(5, -80.2098);
+			prepared.setDouble(4, latitude);
+			prepared.setDouble(5, longitude);
 			prepared.setInt(6, zoneID);
 			prepared.execute(); // Insert
 
@@ -212,9 +212,10 @@ public class Database {
 	String RetrievePicture(int photoID) {
 		byte[] imageBytes = null;
 		String title = null;
+		int likes = 0;
 		try {
 			// Build query to get picture for current user
-			String query = "SELECT  `picture_blob`,`title` FROM  `pictures` WHERE `idpictures` = ?";
+			String query = "SELECT  `picture_blob`,`title`,`likes` FROM  `pictures` WHERE `idpictures` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			prepared.setInt(1, photoID);
 			// Execute
@@ -226,6 +227,7 @@ public class Database {
 			if (rs.next()) {
 				ImageBlob = rs.getBlob("picture_blob"); // Getting binary data
 				title = rs.getString("title");
+				likes = rs.getInt("likes");
 			} else
 				return null;
 
@@ -243,6 +245,7 @@ public class Database {
 		try {
 			json.put("image", new String(imageBytes, "UTF-8"));
 			json.put("title", title);
+			json.put("likes",likes);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
@@ -306,9 +309,9 @@ public class Database {
 		// Query the database
 		try {
 			// Query and execute
-			String query = "SELECT  `total_likes`,`zones_crossed` FROM  `accounts` WHERE `username` = ?";
+			String query = "SELECT  `total_likes`,`zones_crossed` FROM  `users` WHERE `username` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
-			prepared.setString(0, username);
+			prepared.setString(1, username);
 
 			ResultSet rs = prepared.executeQuery();
 
@@ -377,7 +380,7 @@ public class Database {
 	}
 
 	// Gets the user's ID from username string
-	private int GetUserID(String username) {
+	public int GetUserID(String username) {
 		int userID = -1;
 		try {
 			String idQuery = "SELECT  `id` FROM  `users` WHERE `username` = ?";
@@ -398,10 +401,10 @@ public class Database {
 		}
 		return userID;
 	}
-	List<Coordinates> GetPhotoLocations() {
-		List<Coordinates> coorList = new ArrayList<Coordinates>();
+	List<String> GetPhotoLocations() {
+		List<String> coorList = new ArrayList<String>();
 		try {
-			String query= "SELECT  `latitude`,`longitude` FROM  `pictures`";
+			String query= "SELECT  `idpictures`,`latitude`,`longitude` FROM  `pictures`";
 
 			PreparedStatement statement = connection.prepareStatement(query);
 
@@ -409,12 +412,11 @@ public class Database {
 
 			// Get usernames
 			while (rs.next()) {
+				int id = rs.getInt("idpictures");
 				double latitude =rs.getDouble("latitude");
 				double longitude = rs.getDouble("longitude");
-				Coordinates coor = new Coordinates();
-				coor.latitude = latitude;
-				coor.longitude = longitude;
-				coorList.add(coor);
+				String data = id + ","+String.valueOf(latitude) + "," + String.valueOf(longitude);
+				coorList.add(data);
 			}
 			
 

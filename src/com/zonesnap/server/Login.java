@@ -29,17 +29,6 @@ import com.mysql.jdbc.Connection;
 public class Login extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	// NOT IN USE
-	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
-		resp.setContentType("text/plain");
-		Database database = new Database();
-
-		 System.out.println(database.LocateZone(37.227759, -80.422449));
-		// database.CreateZone(37.227759, -80.422449);
-		// database.RegisterUser("Test");
-	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -50,7 +39,7 @@ public class Login extends HttpServlet {
 		// Read the JSON data from POST
 		BufferedReader bin = new BufferedReader(req.getReader());
 		String json = bin.readLine();
-		System.out.println(json);
+	
 		try {
 			// Parse the JSON data
 			JSONParser j = new JSONParser();
@@ -59,7 +48,7 @@ public class Login extends HttpServlet {
 			// Connect to database, and check creds. of user
 			Database database = new Database();
 			database.RegisterUser(username);
-
+			database.Close();
 			// Send response to app
 			//resp.getWriter().println(response);
 

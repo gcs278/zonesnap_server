@@ -26,7 +26,7 @@ public class ProfileData extends HttpServlet {
 		
 		if (requestType.equalsIgnoreCase(new String("profile"))) {
 			// Return the user's profile data
-			String email = req.getParameter("email");
+			String email = req.getParameter("user");
 			jsonData = database.RetrieveUserProfile(email);
 		} else if (requestType.equalsIgnoreCase(new String("users"))) {
 			// Return list of usernames

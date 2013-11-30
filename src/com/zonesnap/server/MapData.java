@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.tools.JavaFileManager.Location;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -43,10 +45,24 @@ public class MapData extends HttpServlet {
 			// Return the user's profile data
 			String email = req.getParameter("email");
 			System.out.println(database.GetPhotoLocations().toString());
-			
+			// Return list of photoIDs
+			List<String> coors = database.GetPhotoLocations();
+			JSONObject json = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (Iterator<String> i = coors.iterator(); i.hasNext();) {
+				String item = i.next().toString();
+				jsonArray.add(item);
+			}
+			json.put("pics", jsonArray);
+			jsonData = json.toString();
 		} else if (requestType.equalsIgnoreCase(new String("zones"))) {
 
+		} else {
+			return;
 		}
+		
+		resp.getWriter().println(jsonData);
+		database.Close();
 	}
 
 	@Override

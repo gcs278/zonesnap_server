@@ -57,35 +57,4 @@ public class Like extends HttpServlet {
 		resp.getWriter().println(sendData);
 		database.Close();
 	}
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		// Post Variables for login
-		String username;
-		int photoID;
-
-		// Read the JSON data from POST
-		BufferedReader bin = new BufferedReader(req.getReader());
-		String json = bin.readLine();
-
-		try {
-			// Parse the JSON data
-			JSONParser j = new JSONParser();
-			JSONObject o = (JSONObject) j.parse(json);
-			username = (String) o.get("username");
-			photoID = Integer.parseInt(o.get("photoID").toString());
-
-			// Connect to database, and check creds. of user
-			Database database = new Database();
-			database.LikePicture(username, photoID);
-
-			// Send response to app
-			// resp.getWriter().println(response);
-
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-
-	}
 }

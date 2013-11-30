@@ -126,6 +126,7 @@ public class PictureUpload extends HttpServlet {
 		String json = bin.readLine();
 		String image = "";
 		String title = "";
+		String username = "";
 		double latitude = 0, longitude = 0;
 		try {
 			JSONParser j = new JSONParser();
@@ -136,7 +137,7 @@ public class PictureUpload extends HttpServlet {
 			title = (String) o.get("title");
 			latitude = Double.parseDouble(o.get("lat").toString());
 			longitude = Double.parseDouble(o.get("long").toString());
-			
+			username = (String) o.get("username");
 		} catch (ParseException e) {
 			e.printStackTrace();
 		} catch (NullPointerException e) {
@@ -148,7 +149,8 @@ public class PictureUpload extends HttpServlet {
 
 		// Upload the image to the database
 		Database database = new Database();
-		if (database.UploadPicture(imageBytes, title, 1, latitude, longitude))
+		int userID = database.GetUserID(username);
+		if (database.UploadPicture(imageBytes, title, userID, latitude, longitude))
 			resp.getWriter().println("OK");
 		else
 			resp.getWriter().println("FAIL");

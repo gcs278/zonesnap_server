@@ -84,6 +84,8 @@ javaee/web-app_3_0.xsd"
 	<servlet-mapping>
 		<servlet-name>Tracking</servlet-name>
 		<url-pattern>/tracking</url-pattern>
+	</servlet-mapping>
+	
 	<servlet>
 		<servlet-name>MapData</servlet-name>
 		<servlet-class>com.zonesnap.server.MapData</servlet-class>

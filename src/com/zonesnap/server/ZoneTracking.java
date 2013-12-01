@@ -2,33 +2,19 @@ package com.zonesnap.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.tools.JavaFileManager.Location;
-import javax.xml.crypto.Data;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.mysql.jdbc.Connection;
-
-// This servlet is for authenticating a user
+// This servlet is for tracking a user
+// NOT IN USE
 public class ZoneTracking extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 

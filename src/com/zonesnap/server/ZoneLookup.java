@@ -25,10 +25,11 @@ import org.json.simple.parser.ParseException;
 
 import com.mysql.jdbc.Connection;
 
-// This servlet is for authenticating a user
+// This servlet is for looking up a zone
 public class ZoneLookup extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	// Lookup Zone according to lat long
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -37,7 +38,7 @@ public class ZoneLookup extends HttpServlet {
 		Double latitude;
 		Double longitude;
 		
-		// Determine type of request
+		// Get lat and long
 		try {
 			latitude = Double.parseDouble(req.getParameter("lat"));
 			longitude = Double.parseDouble(req.getParameter("long"));
@@ -53,13 +54,16 @@ public class ZoneLookup extends HttpServlet {
 
 		Database database = new Database();
 
+		// Locate Zone 
 		JSONObject json = new JSONObject();
 		int zone = database.LocateZone(latitude, longitude);
 		if ( zone == -1 ) {
+			// Create zone if not created yet
 			database.CreateZone(latitude, longitude);
 			zone = database.LocateZone(latitude, longitude);
 		}
 		
+		// Send Zone data
 		json.put("zone", zone);
 
 		resp.getWriter().println(json.toJSONString());

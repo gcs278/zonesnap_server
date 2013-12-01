@@ -18,19 +18,7 @@ import org.json.simple.parser.ParseException;
 public class Register extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	// Used for testing
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		Database database = new Database();
-		if (database.RegisterUser("Test")) {
-			resp.getWriter().println("SUCCESS");
-		} else {
-			resp.getWriter().println("FAIL"); // Name Taken
-		}
-
-		resp.getWriter().close();
-	};
-
+	// Register/Login user
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {

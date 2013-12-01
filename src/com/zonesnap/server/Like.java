@@ -27,10 +27,11 @@ import org.json.simple.parser.ParseException;
 
 import com.mysql.jdbc.Connection;
 
-// This servlet is for authenticating a user
+// This servlet is for getting liked photos/ Liking photo
 public class Like extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	// Get a list of user's liked photos
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -38,6 +39,7 @@ public class Like extends HttpServlet {
 		
 		String username = req.getParameter("user");
 		
+		// Check for username
 		if (username == null) {
 			resp.getWriter().println("Error: User not specified");
 			return;
@@ -51,10 +53,45 @@ public class Like extends HttpServlet {
 			String item = i.next().toString();
 			jsonArray.add(item);
 		}
+		
+		// Send data
 		json.put("photoIDs", jsonArray);
 		String sendData = json.toString();
 	
 		resp.getWriter().println(sendData);
 		database.Close();
 	}
+	
+	// Like a photo
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		// Recieve JSON post data
+		BufferedReader bin = new BufferedReader(req.getReader());
+		String jsonString = bin.readLine();
+
+		// Parse the JSON data from post
+		String username = null;
+		int photoID = 0;
+		JSONParser j = new JSONParser();
+		try {
+			JSONObject o = (JSONObject) j.parse(jsonString);
+			username = (String) o.get("username");
+			photoID = Integer.parseInt(o.get("photoID").toString());
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		// Connect to database and attempt to register user
+		Database database = new Database();
+		if (database.LikePicture(username, photoID)) {
+			resp.getWriter().println("SUCCESS");
+		} else {
+			resp.getWriter().println("FAIL"); // Name Taken
+		}
+
+		resp.getWriter().close();
+	}
+	
 }

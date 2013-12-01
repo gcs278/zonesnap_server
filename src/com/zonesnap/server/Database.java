@@ -43,52 +43,7 @@ public class Database {
 		}
 	}
 
-	// Get the list of usernames
-	List<String> GetUsernames() {
-		List<String> usernames = new ArrayList<String>();
-		try {
-			// Query Database for all usernames
-			Statement statement = connection.createStatement();
-			String query = "SELECT  `username` FROM  `accounts`";
-			ResultSet rs = statement.executeQuery(query);
-
-			// Get usernames
-			while (rs.next())
-				usernames.add(rs.getString("username"));
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.out.println("Query Failed: " + e.getMessage());
-		}
-		return usernames;
-	}
-
-	// Authorize a user, return OK or FAIL
-	String LoginUser(String username, String password, double latitude,
-			double longitude) {
-		// Authorize the user
-		if (GetUsernames().contains(username)) {
-			updateLocation(latitude, longitude, username);
-			return "OK";
-		} else {
-			return "FAIL";
-		}
-	}
-
-	private void updateLocation(double latitude, double longitude, String email) {
-		try {
-			Statement statement = connection.createStatement();
-			String query = "UPDATE `accounts` SET `latitude_last`=" + latitude
-					+ ",`longitude_last`=" + longitude + "WHERE `username`='"
-					+ email + "'";
-			statement.executeUpdate(query);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
+	// Register/Login a user
 	boolean RegisterUser(String username) {
 		// Attempt to insert into database
 		try {
@@ -128,6 +83,7 @@ public class Database {
 	boolean UploadPicture(byte[] image, String title, int userID,
 			double latitude, double longitude) {
 
+		// See if zone exists, create zone if doesn't
 		int zoneID = LocateZone(latitude, longitude);
 		if (zoneID == -1) {
 			CreateZone(latitude, longitude);
@@ -209,6 +165,7 @@ public class Database {
 		}
 	}
 
+	// Retrieve a certain picture
 	String RetrievePicture(int photoID) {
 		byte[] imageBytes = null;
 		String title = null;
@@ -241,6 +198,8 @@ public class Database {
 			e.printStackTrace();
 			System.out.println("Query Failed: " + e.getMessage());
 		}
+		
+		// Put the data as JSON
 		JSONObject json = new JSONObject();
 		try {
 			json.put("image", new String(imageBytes, "UTF-8"));
@@ -251,52 +210,6 @@ public class Database {
 		}
 
 		return json.toJSONString();
-	}
-
-	boolean UploadSound(byte[] sound, String email) {
-		try {
-			String query = "UPDATE `accounts` SET `recording`= ? WHERE `username` = '"
-					+ email + "'";
-			java.sql.PreparedStatement prepared = connection
-					.prepareStatement(query);
-			prepared.setBytes(1, sound);
-			prepared.execute();
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.out.println("Query Failed: " + e.getMessage());
-			return false;
-		}
-		return true;
-	}
-
-	byte[] RetrieveSound(String email) {
-		byte[] soundBytes = null;
-
-		try {
-			// Build query to get picture for current user
-			String query = "SELECT  `recording` FROM  `accounts` WHERE `username` = ?";
-			PreparedStatement prepared = connection.prepareStatement(query);
-			prepared.setString(1, email);
-			// Execute
-			ResultSet rs = prepared.executeQuery();
-
-			Blob soundBlob = null;
-			// Check if we have a result
-			if (rs.next())
-				soundBlob = rs.getBlob("recording"); // Getting binary data
-			else
-				return null;
-
-			// Converting blob to byte array
-			soundBytes = soundBlob.getBytes(1, (int) soundBlob.length());
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("Query Failed: " + e.getMessage());
-		}
-
-		return soundBytes;
 	}
 
 	// Retrieve the user's profile data in JSON format
@@ -401,6 +314,8 @@ public class Database {
 		}
 		return userID;
 	}
+	
+	// Get locations of photos for google map
 	List<String> GetPhotoLocations() {
 		List<String> coorList = new ArrayList<String>();
 		try {
@@ -427,6 +342,7 @@ public class Database {
 		}
 		return coorList;
 	}
+	
 	// Get the list of usernames
 	List<Integer> GetPhotoIDs(double latitude, double longitude, String order) {
 		List<Integer> photoIDs = new ArrayList<Integer>();
@@ -435,7 +351,7 @@ public class Database {
 
 		// If no zone, no pictures
 		if (zoneID == -1) {
-			return photoIDs; //
+			return photoIDs;
 		}
 
 		try {
@@ -484,13 +400,13 @@ public class Database {
 			}
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.out.println("Query Failed: " + e.getMessage());
 		}
 		return photoIDs;
 	}
 	
+	// Get User ID from string username
 	private int getUserId(String username) {
 		int userId = 0;
 		try {
@@ -514,6 +430,7 @@ public class Database {
 		return userId;
 	}
 
+	// Update that user has crossed more zones
 	boolean UpdateZonesCrossed(String username, double latitude, double longitude) {
 		int zoneID = LocateZone(latitude, longitude);
 		if (zoneID == -1) {

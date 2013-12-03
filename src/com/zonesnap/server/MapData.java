@@ -43,7 +43,6 @@ public class MapData extends HttpServlet {
 		if (requestType.equalsIgnoreCase(new String("pics"))) {
 			// Return the user's profile data
 			String email = req.getParameter("email");
-			System.out.println(database.GetPhotoLocations().toString());
 			// Return list of photoIDs
 			List<String> coors = database.GetPhotoLocations();
 			JSONObject json = new JSONObject();

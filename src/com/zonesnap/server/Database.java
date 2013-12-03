@@ -196,10 +196,11 @@ public class Database {
 	String RetrievePicture(int photoID) {
 		byte[] imageBytes = null;
 		String title = null;
+		String username = null;
 		int likes = 0;
 		try {
 			// Build query to get picture for current user
-			String query = "SELECT  `picture_blob`,`title`,`likes` FROM  `pictures` WHERE `idpictures` = ?";
+			String query = "SELECT  `picture_blob`,`title`,`likes`,`username` FROM  `pictures` LEFT JOIN `users` ON `users`.`id` = `users_id` WHERE `idpictures` = ?";
 			PreparedStatement prepared = connection.prepareStatement(query);
 			prepared.setInt(1, photoID);
 			// Execute
@@ -212,6 +213,7 @@ public class Database {
 				ImageBlob = rs.getBlob("picture_blob"); // Getting binary data
 				title = rs.getString("title");
 				likes = rs.getInt("likes");
+				username = rs.getString("username");
 			} else
 				return null;
 
@@ -232,6 +234,7 @@ public class Database {
 			json.put("image", new String(imageBytes, "UTF-8"));
 			json.put("title", title);
 			json.put("likes", likes);
+			json.put("username", username);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
@@ -379,7 +382,7 @@ public class Database {
 	List<String> GetPhotoLocations() {
 		List<String> coorList = new ArrayList<String>();
 		try {
-			String query = "SELECT  `idpictures`,`latitude`,`longitude`,`title` FROM  `pictures`";
+			String query = "SELECT  `idpictures`,`latitude`,`longitude`,`title`,`username` FROM  `pictures` LEFT JOIN `users` ON `users_id` = `users`.`id`";
 
 			PreparedStatement statement = connection.prepareStatement(query);
 
@@ -391,8 +394,9 @@ public class Database {
 				double latitude = rs.getDouble("latitude");
 				double longitude = rs.getDouble("longitude");
 				String title = rs.getString("title");
+				String username = rs.getString("username");
 				String data = id + "," + String.valueOf(latitude) + ","
-						+ String.valueOf(longitude) + "," + title;
+						+ String.valueOf(longitude) + "," + title + "," + username ;
 				coorList.add(data);
 			}
 

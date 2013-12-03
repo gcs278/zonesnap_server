@@ -101,21 +101,14 @@ public class PictureUpload extends HttpServlet {
 			return;
 		}
 
-		// else if (!database.GetUsernames().contains(photoID)) {
-		// resp.getWriter().println("Error: Invalid username");
-		// return;
-		// }
 
-		resp.setContentType("text/plaintext");
-
-		// String img =
-		// "<img alt=\"250836_3676541106856_925123077_n.jpg\"src=\"data:image/jpeg;base64,";
-		// img += ImageDatabase + "\"/>";
+		resp.setContentType("text/plaintext");;
 
 		resp.getWriter().println(sendData);
 		database.Close();
 	}
 
+	// Post a picture
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {

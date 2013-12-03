@@ -312,11 +312,9 @@ public class Database {
 			System.out.println("Query Failed: " + e.getMessage());
 			return false;
 		}
-
+		int userId = GetUserID(username);
 		// Add photo to User's likes
 		try {
-			int userId = GetUserID(username);
-
 			String query = "INSERT INTO `user_favorites` (`pictures_id`,`users_id`,`date`) VALUES (?,?,?)";
 			java.sql.PreparedStatement prepared = connection
 					.prepareStatement(query);
@@ -337,6 +335,20 @@ public class Database {
 			return false;
 		}
 
+		// Give the photo +1 likes
+		try {
+			String query = "UPDATE `users` SET `total_likes`= total_likes+1 WHERE `id` = ?";
+			java.sql.PreparedStatement prepared = connection
+					.prepareStatement(query);
+			prepared.setInt(1, userId);
+			prepared.execute();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Query Failed: " + e.getMessage());
+			return false;
+		}
 		return true;
 	}
 

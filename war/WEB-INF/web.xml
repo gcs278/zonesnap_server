@@ -17,15 +17,6 @@ javaee/web-app_3_0.xsd"
 		<url-pattern>/uploadpic</url-pattern>
 	</servlet-mapping>
 
-	<servlet>
-		<servlet-name>UploadSound</servlet-name>
-		<servlet-class>com.zonesnap.server.SoundUpload</servlet-class>
-	</servlet>
-
-	<servlet-mapping>
-		<servlet-name>UploadSound</servlet-name>
-		<url-pattern>/uploadsound</url-pattern>
-	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>Login</servlet-name>

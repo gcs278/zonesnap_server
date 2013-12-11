@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+// This servlet is for getting profile data
 public class ProfileData extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 

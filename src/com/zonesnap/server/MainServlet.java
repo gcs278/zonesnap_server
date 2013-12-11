@@ -27,7 +27,7 @@ public class MainServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		resp.getWriter().write("Jam with me Server! See API for usage");
+		resp.getWriter().write("ZoneSnap Server! See API for usage");
 	}
 }
    

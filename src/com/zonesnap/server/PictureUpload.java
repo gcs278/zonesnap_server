@@ -19,6 +19,7 @@ import org.json.simple.parser.ParseException;
 public class PictureUpload extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	// Error message function
 	private void PrintError(HttpServletResponse resp, String error)
 			throws IOException {
 		resp.getWriter().println("Error: Incorrect API usage");
